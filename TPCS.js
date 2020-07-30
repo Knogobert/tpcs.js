@@ -2,6 +2,8 @@
 // original by [Rex Riepe in LESS](https://github.com/rexriepe/tpcs)
 // translated to JS by [Knogobert](https://github.com/knogobert)
 
+// TODO: Alpha channel/transparency support
+
 // * The Turbo colormap
 // by Anton Mikhailov
 // see https://gist.github.com/mikhailov-work/ for more info
@@ -268,30 +270,42 @@ const turbo = [
 const baseColor = '#B8D8E0';
 
 // run TPCS and set all 9 semantic color variables:
-// action, reaction, alternate, accent, highlight, info, warning, success, failure
-
-// setColorScheme(baseColor);
+// action, reaction, alternate, accent
+// highlight, info, warning, success, failure
 
 // * TPCS mixins
-function setColorScheme(color) {
+function getColorScheme(color) {
   // the main mixin
   // sets all color variables
 
   const { repColor, repColorNumber } = getRepColor(color, turbo);
   const actionBase = repColor;
   console.log('getRepColor { repColor, repColorNumber }:', repColor, repColorNumber);
-  const { reactionBase, altBase, accentBase } = getColorBases(repColor, repColorNumber);
+  const { reactionBase, altBase, accentBase } = getColorBases(repColorNumber, turbo);
   console.log('getColorBases { reactionBase, altBase, accentBase }:', reactionBase, altBase, accentBase);
-  // .set-action();
-  // .set-reaction();
-  // .set-warning();
-  // .set-info();
+
+  const { action } = getAction(actionBase);
+  const { reaction } = getReaction(reactionBase);
+  const { alternate } = getAlternate(altBase);
+  const { accent } = getAccent(accentBase);
+
+  // const { info } = getInfo();
   // .set-success();
+  // const { warning } = getWarning(warningBase);
   // .set-failure();
-  // .set-accent();
-  // .set-alternate();
   // .set-highlight();
-  return true;
+  return {
+    actionBase,
+    reactionBase,
+    altBase,
+    accentBase,
+    action,
+    reaction,
+    alternate,
+    accent,
+    // info,
+    // warning,
+  };
 }
 
 function getRepColor(color, list = []) {
@@ -327,82 +341,76 @@ function getRepColor(color, list = []) {
   return tournament(firstChamp, firstContender, 1);
 }
 
-function getColorBases(color, num) {
+function getColorBases(colorNum, list = [], offset = 32) {
   // does some faux-color-wheel-spinning through
   // the turbo palette to find new colors
-  // offset changes alt-base and accent-base
+  // offset changes altBase and accentBase
 
-  // this sets these variables:
-  // actionBase
+  // this returns these variables:
   // reactionBase
   // altBase
   // accentBase
 
-  const offset = 32;
-
-  if (num >= 192) {
+  if (colorNum >= 192) {
     return {
-      reactionBase: turbo[num - 128],
-      altBase: turbo[num - offset * 2],
-      accentBase: turbo[num - offset],
+      reactionBase: list[colorNum - 128],
+      altBase: list[colorNum - offset * 2],
+      accentBase: list[colorNum - offset],
     };
   }
 
-  if (num > 128 && num < 192) {
+  if (colorNum > 128 && colorNum < 192) {
     return {
-      reactionBase: turbo[num - 128],
-      altBase: turbo[num - offset * 2],
-      accentBase: turbo[num - offset],
+      reactionBase: list[colorNum - 128],
+      altBase: list[colorNum - offset * 2],
+      accentBase: list[colorNum - offset],
     };
   }
 
-  if (num > 64 && num <= 128) {
+  if (colorNum > 64 && colorNum <= 128) {
     return {
-      reactionBase: turbo[num + 128],
-      altBase: turbo[num + offset * 2],
-      accentBase: turbo[num + offset],
+      reactionBase: list[colorNum + 128],
+      altBase: list[colorNum + offset * 2],
+      accentBase: list[colorNum + offset],
     };
   }
 
-  if (num <= 64) {
-    return {
-      reactionBase: turbo[num + 128],
-      altBase: turbo[num + offset * 2],
-      accentBase: turbo[num + offset],
-    };
-  }
+  // if (colorNum <= 64) {
+  return {
+    reactionBase: list[colorNum + 128],
+    altBase: list[colorNum + offset * 2],
+    accentBase: list[colorNum + offset],
+  };
+  // }
 }
 
 // * Semantic colors
-/*
-.set-action() {
-	// action means "do something," it's great for submit buttons
-	// it's usually pretty close to the base color
-
-	.getLumafix(actionBase, baseColor, 38%);
-	@action: @lumafix;
+function getAction(actionBase) {
+  // action means "do something," it's great for submit buttons
+  // it's usually pretty close to the base color
+	return { action: getLumafix(actionBase, baseColor, 38) };
 }
 
-.set-reaction() {
-	// reaction is for responding, usually after an action
+function getReaction(reactionBase) {
+  // reaction is for responding, usually after an action
 	// a good second step or confirmation color
 	// reaction is typically close to being a complement of action
-
-	.getLumafix(reactionBase, baseColor, 38%);
-	@reaction: @lumafix;
+  return { reaction: getLumafix(reactionBase, baseColor, 38) };
 }
 
-.set-alternate() {
-	// alternate is meant to be an alternate color to action and reaction
+function getAlternate(altBase) {
+  // alternate is meant to be an alternate color to action and reaction
 	// it can sometimes make a good stand-in for other colors in the scheme
-
-	.set-alternate-final() {
-		.getLumafix(altBase, baseColor, 38%);
-		@alternate: @lumafix;
-	}
-	.set-alternate-final();
+	return { alternate: getLumafix(altBase, baseColor, 38) };
 }
 
+function getAccent(accentBase) {
+	// accent is meant to be used sparingly with @action, @reaction and @alternate
+	// its extra saturation and lightness is good for drawing attention or balancing designs
+	return { accent: lighten(saturate(mix(getLumafix(accentBase), accentBase, 20), 10), 5) }; // !refactor , probably doesn't work
+}
+
+/*
 .set-info() {
 	// info is a light blue or teal
 	// it indicates innocuous, low-urgency information
@@ -411,12 +419,12 @@ function getColorBases(color, num) {
 	@teal: extract(turbo, 74);
 
 	.set-distance-action() {
-		.set-distance(@blue, actionBase);
+		getDistance(@blue, actionBase);
 		@distance-action: @distance;
 	}
 
 	.set-distance-reaction() {
-		.set-distance(@blue, reactionBase);
+		getDistance(@blue, reactionBase);
 		@distance-reaction: @distance;
 	}
 
@@ -450,12 +458,12 @@ function getColorBases(color, num) {
 	@yellow: extract(turbo, 152);
 
 	.set-distance-action() {
-		.set-distance(@orange, actionBase);
+		getDistance(@orange, actionBase);
 		@distance-action: @distance;
 	}
 
 	.set-distance-reaction() {
-		.set-distance(@orange, reactionBase);
+		getDistance(@orange, reactionBase);
 		@distance-reaction: @distance;
 	}
 
@@ -501,12 +509,12 @@ function getColorBases(color, num) {
 	@lightgreen: extract(turbo, 130);
 
 	.set-distance-action() {
-		.set-distance(@green, actionBase);
+		getDistance(@green, actionBase);
 		@distance-action: @distance;
 	}
 
 	.set-distance-reaction() {
-		.set-distance(@green, reactionBase);
+		getDistance(@green, reactionBase);
 		@distance-reaction: @distance;
 	}
 
@@ -539,12 +547,12 @@ function getColorBases(color, num) {
 	@darkred: extract(turbo, 240);
 
 	.set-distance-action() {
-		.set-distance(@red, actionBase);
+		getDistance(@red, actionBase);
 		@distance-action: @distance;
 	}
 
 	.set-distance-reaction() {
-		.set-distance(@red, reactionBase);
+		getDistance(@red, reactionBase);
 		@distance-reaction: @distance;
 	}
 
@@ -612,21 +620,13 @@ function getColorBases(color, num) {
 	.set-highlight-base();
 	.set-highlight-final();
 }
-
-.set-accent() {
-	// accent is meant to be used sparingly with @action, @reaction and @alternate
-	// its extra saturation and lightness is good for drawing attention or balancing designs
-
-	.set-accent-final() {
-		.getLumafix(accentBase);
-		@accent:lighten(saturate(mix(@lumafix, accentBase, 20%), 10%), 5%);
-	}
-	.set-accent-final();
-}
 */
+
 // * Utility mixins
 // many of these are "borrowed" from Strapless (http://strapless.io)
 // some are from https://css-tricks.com/converting-color-spaces-in-javascript/
+// And some are straight outta https://github.com/less/less.js/blob/master/dist/less.js
+// I kinda wished I thought of using less.js straight up earlier
 
 // .contrast-text-against(color: @background; @contrast-standard: 7; @mode: auto;) {
 // 	// adds tone to background color until contrast standard is met
@@ -732,37 +732,127 @@ function getColorBases(color, num) {
 //   .contrast-text-against(color);
 // }
 
-// .set-contrast-ratio(aaa, bbb) when (luma(aaa) > luma(bbb)) {
+// .set-contrast-ratio(color1, color2) when (luma(color1) > luma(color2)) {
 //   // sets variable @contrast-ratio to contrast ratio between two colors
 
-//   @l1: unit(luma(aaa))/100;
-//   @l2: unit(luma(bbb))/100;
+//   @l1: unit(luma(color1))/100;
+//   @l2: unit(luma(color2))/100;
 //   @contrast-ratio: round((@l1 + .05)/(@l2 + .05),2);
 // }
 
-// .set-contrast-ratio(aaa, bbb) when (luma(bbb) > luma(aaa)) {
-//   @l1: unit(luma(bbb))/100;
-//   @l2: unit(luma(aaa))/100;
+// .set-contrast-ratio(color1, color2) when (luma(color2) > luma(color1)) {
+//   @l1: unit(luma(color2))/100;
+//   @l2: unit(luma(color1))/100;
 //   @contrast-ratio: round((@l1 + .05)/(@l2 + .05),2);
 // }
 
-// .set-contrast-ratio(aaa, bbb) when (luma(bbb) = luma(aaa)) {
+// .set-contrast-ratio(color1, color2) when (luma(color2) = luma(color1)) {
 //   @contrast-ratio: 1;
 // }
 
-// .set-distance(aaa, bbb) {
-//   // sets variable distance to distance between two colors
-//   // distance is RGB space units
+function getDistance(color1, color2) {
+  // sets variable distance to distance between two colors
+  // distance is RGB space units
 
-//   // RGB space model isn't perfectly cubic, but instead
-//   // adjusted for human perception
+  // RGB space model isn't perfectly cubic, but instead
+  // adjusted for human perception
+  const rValuesAB = 2 * (color2[0] - color1[0]) * (color2[0] - color1[0]);
+  const gValuesAB = 4 * (color2[1] - color1[1]) * (color2[1] - color1[1]);
+  const bValuesAB = 3 * (color2[2] - color1[2]) * (color2[2] - color1[2]);
 
-//   const rValuesAB = 2*(red(bbb) - red(aaa))*(red(bbb) - red(aaa));
-//   const gValuesAB = 4*(green(bbb) - green(aaa))*(green(bbb) - green(aaa));
-//   const bValuesAB = 3*(blue(bbb) - blue(aaa))*(blue(bbb) - blue(aaa));
+  return Math.round((Math.sqrt(rValuesAB + gValuesAB + bValuesAB)), 2);
+}
 
-//   const distance = Math.round((Math.sqrt(rValuesAB + gValuesAB + bValuesAB)),2);
-// }
+/**
+ * hslToRGB
+ *
+ * Adapted from: http://axonflux.com/handy-rgb-to-hsl-and-rgb-to-hsv-color-model-c
+ * By https://github.com/micro-js/hsl-to-rgb/blob/master/lib/index.js
+ */
+function hslToRGB (h, s, l) {
+  // Achromatic
+  if (s === 0) return [l, l, l]
+  h /= 360
+
+  var q = l < 0.5 ? l * (1 + s) : l + s - l * s
+  var p = 2 * l - q
+
+  return [
+    Math.round(hueToRGB(p, q, h + 1/3) * 255),
+    Math.round(hueToRGB(p, q, h) * 255),
+    Math.round(hueToRGB(p, q, h - 1/3) * 255)
+  ]
+}
+
+function hueToRGB (p, q, t) {
+  if (t < 0) t += 1
+  if (t > 1) t -= 1
+  if (t < 1/6) return p + (q - p) * 6 * t
+  if (t < 1/2) return q
+  if (t < 2/3) return p + (q - p) * (2/3 - t) * 6
+
+  return p
+}
+
+// Mix colors
+// Copyright (c) 2006-2009 Hampton Catlin, Natalie Weizenbaum, and Chris Eppstein
+// http://sass-lang.com
+//
+function mix(color1, color2, weight) {
+  // TODO: Alpha/transparency support
+  if (!weight) weight = 50;
+  const p = weight / 100.0;
+  const w = p * 2 - 1;
+  const a = 0; // TODO: RGBtoHSL(color1).a - RGBtoHSL(color2).a;
+  const w1 = (((w * a == -1) ? w : (w + a) / (1 + w * a)) + 1) / 2.0;
+  const w2 = 1 - w1;
+  const rgb = [color1[0] * w1 + color2[0] * w2,
+      color1[1] * w1 + color2[1] * w2,
+      color1[2] * w1 + color2[2] * w2];
+  const alpha = 1;
+  return rgb;
+  // var rgb = [color1.rgb[0] * w1 + color2.rgb[0] * w2,
+  //     color1.rgb[1] * w1 + color2.rgb[1] * w2,
+  //     color1.rgb[2] * w1 + color2.rgb[2] * w2];
+  // var alpha = color1.alpha * p + color2.alpha * (1 - p);
+  // return new Color(rgb, alpha);
+}
+
+function clamp$1(val) {
+  return Math.min(1, Math.max(0, val));
+}
+
+function lighten(color, amount) {
+  let hsl = RGBToHSL(color);
+  hsl[2] += amount / 100;
+  hsl[2] = clamp$1(hsl[2]);
+  // return hsla(color, hsl);
+  return hslToRGB(...hsl)
+}
+
+function darken(color, amount) {
+  let hsl = RGBToHSL(color);
+  hsl[2] -= amount / 100;
+  hsl[2] = clamp$1(hsl[2]);
+  // return hsla(color, hsl);
+  return hslToRGB(...hsl)
+}
+
+function saturate(color, amount) {
+  let hsl = RGBToHSL(color);
+  hsl[1] += amount / 100;
+  hsl[1] = clamp$1(hsl[1]);
+  // return hsla(color, hsl);
+  return hslToRGB(...hsl)
+}
+
+function desaturate(color, amount) {
+  let hsl = RGBToHSL(color);
+  hsl[1] -= amount / 100;
+  hsl[1] = clamp$1(hsl[1]);
+  // return hsla(color, hsl);
+  return hslToRGB(...hsl)
+}
 
 // Convert rgb into relative luminance (0-100) in percentage
 // Just like http://lesscss.org/functions/#color-channel-luma
@@ -885,7 +975,6 @@ function getCloserFartherHue(compare, c1, c2) {
 //   .set-tone(color);
 // }
 
-// ! WIP
 function getLumafix(color, compare = baseColor, strength = 100) {
   // gets lumafix of a version of color with luma similar to compare
 
@@ -895,35 +984,24 @@ function getLumafix(color, compare = baseColor, strength = 100) {
 
   // tone keeps lumafix from flipping back and forth
   // between shading and tinting
-  if (luma(color) > luma(compareColor)) { // TODO: luma 
-	  tone = 'black';
-  }
-  if (luma(compareColor) >= luma(color)) {
-	  tone = 'white';
-  }
+  if (luma(color) > luma(compareColor)) tone = 'black';
+  if (luma(compareColor) >= luma(color)) tone = 'white';
 
-  .lumafix(colorToFix, compare, index) when (index <= iterations)
-									  and (luma(colorToFix) < luma(compare))
-									  and (tone = white) {
-	newColor: lighten(colorToFix, .5%*index);
-	.lumafix(newColor, compare, index + 1);
-  }
+  const lumafix = (colorToFix, compare, index) => {
+    if (index <= iterations && luma(colorToFix) < luma(compare) && tone === 'white') {
+      const newColor = lighten(colorToFix, 0.5 * index);
+      return lumafix(newColor, compare, index + 1);
+    }
+    if (index <= iterations && luma(colorToFix) > luma(compare) && tone === 'black') {
+      const newColor = darken(colorToFix, 0.5 * index);
+      return lumafix(newColor, compare, index + 1);
+    }
+    // ? lumafix(colorToFix, compare, index)
 
-  .lumafix(colorToFix, compare, index) when (index <= iterations)
-									  and (luma(colorToFix) > luma(compare))
-									  and (tone = black) {
-	newColor: darken(colorToFix, .5%*index);
-	.lumafix(newColor, compare, index + 1);
+    return mix(color, colorToFix, (100 - strength));
   }
 
-  .lumafix(colorToFix, compare, index) when (default()) {
-	@lumafix: mix(color, colorToFix, (100% - strength));
-  }
-
-  .settings();
-  .lumafix(color, compare, 1);
-
-  return 
+  return lumafix(color, compareColor, 1);
 }
 
 // * Temp
@@ -955,4 +1033,4 @@ function getLumafix(color, compare = baseColor, strength = 100) {
 //   color: #ff61e9;
 // }
 
-console.log('setColorScheme:', setColorScheme(baseColor));
+console.log('getColorScheme:', getColorScheme(baseColor));

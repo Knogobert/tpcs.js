@@ -271,7 +271,7 @@ const baseColor = '#B8D8E0';
 
 // run TPCS and set all 9 semantic color variables:
 // action, reaction, alternate, accent
-// highlight, info, warning, success, failure
+// info, success, warning, failure, highlight
 
 // * TPCS mixins
 function getColorScheme(color) {
@@ -289,11 +289,12 @@ function getColorScheme(color) {
   const { alternate } = getAlternate(altBase);
   const { accent } = getAccent(accentBase);
 
-  // const { info } = getInfo();
+  const { info } = getInfo(actionBase, reactionBase);
   // .set-success();
-  // const { warning } = getWarning(warningBase);
+  const { warning } = getWarning(actionBase, reactionBase);
   // .set-failure();
   // .set-highlight();
+
   return {
     actionBase,
     reactionBase,
@@ -303,8 +304,11 @@ function getColorScheme(color) {
     reaction,
     alternate,
     accent,
-    // info,
-    // warning,
+    info,
+    // success.
+    warning,
+    // failure.
+    // highlight.
   };
 }
 
@@ -410,97 +414,41 @@ function getAccent(accentBase) {
 	return { accent: lighten(saturate(mix(getLumafix(accentBase), accentBase, 20), 10), 5) }; // !refactor , probably doesn't work
 }
 
-/*
-.set-info() {
+function getInfo(actionBase, reactionBase) {
 	// info is a light blue or teal
 	// it indicates innocuous, low-urgency information
+	const blue = turbo[64];
+  const teal = turbo[74];
+  let infoBase = blue;
+	if ( getDistance(blue, actionBase) < 70 || getDistance(blue, reactionBase) < 70) infoBase = teal;
 
-	@blue: extract(turbo, 64);
-	@teal: extract(turbo, 74);
-
-	.set-distance-action() {
-		getDistance(@blue, actionBase);
-		@distance-action: @distance;
-	}
-
-	.set-distance-reaction() {
-		getDistance(@blue, reactionBase);
-		@distance-reaction: @distance;
-	}
-
-	.set-info-base() when (@distance-action < 70) or (@distance-reaction < 70) {
-		@info-base: @teal;
-	}
-
-	.set-info-base() when (default()) {
-		@info-base: @blue;
-	}
-
-	.set-info-final() {
-		.getLumafix(@info-base, baseColor, 50%);
-		@info:@lumafix;
-	}
-
-	.set-distance-action();
-	.set-distance-reaction();
-
-	.set-info-base();
-
-	.set-info-final();
+	return { info: getLumafix(infoBase, baseColor, 50) };
 }
 
-.set-warning() {
+
+function getWarning(actionBase, reactionBase) {
 	// warning is a high urgency version of its pairing, info
 	// its orange/yellow is a complement to info's teal/blue
 	// remember: warning comes before the failure, failure after
+	const orange = turbo[172];
+  const yellow = turbo[152];
+  const white = [255, 255, 255];
+  const baseColorRGB = hexToRGB(baseColor);
+  let warningBase = orange;
+	if ( getDistance(orange, actionBase) < 70 || getDistance(orange, reactionBase) < 70) warningBase = yellow;
 
-	@orange: extract(turbo, 172);
-	@yellow: extract(turbo, 152);
-
-	.set-distance-action() {
-		getDistance(@orange, actionBase);
-		@distance-action: @distance;
-	}
-
-	.set-distance-reaction() {
-		getDistance(@orange, reactionBase);
-		@distance-reaction: @distance;
-	}
-
-	.set-warning-base() when (@distance-action < 70) or (@distance-reaction < 70) {
-		@warning-base: @yellow;
-	}
-
-	.set-warning-base() when (default()) {
-		@warning-base: @orange;
-	}
-
-	.set-warning-final() when (luma(baseColor) > 56%) {
-		.getLumafix(@warning-base);
-		@warning:softlight(mix(@lumafix, @warning-base, 70%), @warning-base);
-	}
-
-	.set-warning-final() when (luma(baseColor) <= 56%) and (luma(baseColor) > 32%) {
-		.getLumafix(@warning-base);
-		@warning:overlay(mix(@lumafix, @warning-base, 70%), @warning-base);
-	}
-
-	.set-warning-final() when (luma(baseColor) <= 32%) and (luma(baseColor) > 16%) {
-		.getLumafix(@warning-base);
-		@warning:overlay(mix(@lumafix, @warning-base, 60%), @warning-base);
-	}
-
-	.set-warning-final() when (default()) {
-		.getLumafix(@warning-base);
-		@warning:overlay(mix(@lumafix, @warning-base, 50%), white);
-	}
-
-	.set-distance-action();
-	.set-distance-reaction();
-	.set-warning-base();
-	.set-warning-final();
+	if (luma(...baseColorRGB) > 0.56) {
+		return { warning: colorBlend(colorBlendModeFns.softlight, mix(getLumafix(warningBase), warningBase, 70), warningBase) };
+	} else if (luma(...baseColorRGB) > 0.32) {
+		return { warning: colorBlend(colorBlendModeFns.overlay, mix(getLumafix(warningBase), warningBase, 70), warningBase) };
+	} else if (luma(...baseColorRGB) > 0.16) {
+		return { warning: colorBlend(colorBlendModeFns.overlay, mix(getLumafix(warningBase), warningBase, 60), warningBase) };
+	} else {
+    return { warning: colorBlend(colorBlendModeFns.overlay, mix(getLumafix(warningBase), warningBase, 50), white) };
+  }
 }
 
+/*
 .set-success() {
 	// success indicates that an action worked or a positive response came through
 	// its green tells users they're good to go
@@ -627,6 +575,11 @@ function getAccent(accentBase) {
 // some are from https://css-tricks.com/converting-color-spaces-in-javascript/
 // And some are straight outta https://github.com/less/less.js/blob/master/dist/less.js
 // I kinda wished I thought of using less.js straight up earlier
+
+const roundNumber = (number, decimals = 0) => Number(
+  // @ts-ignore
+  (`${Math.round(`${number}e${decimals}`)}e-${decimals}`),
+);
 
 // .contrast-text-against(color: @background; @contrast-standard: 7; @mode: auto;) {
 // 	// adds tone to background color until contrast standard is met
@@ -760,7 +713,7 @@ function getDistance(color1, color2) {
   const gValuesAB = 4 * (color2[1] - color1[1]) * (color2[1] - color1[1]);
   const bValuesAB = 3 * (color2[2] - color1[2]) * (color2[2] - color1[2]);
 
-  return Math.round((Math.sqrt(rValuesAB + gValuesAB + bValuesAB)), 2);
+  return roundNumber(Math.sqrt(rValuesAB + gValuesAB + bValuesAB), 2);
 }
 
 /**
@@ -803,8 +756,8 @@ function mix(color1, color2, weight) {
   if (!weight) weight = 50;
   const p = weight / 100.0;
   const w = p * 2 - 1;
-  const a = 0; // TODO: RGBtoHSL(color1).a - RGBtoHSL(color2).a;
-  const w1 = (((w * a == -1) ? w : (w + a) / (1 + w * a)) + 1) / 2.0;
+  const aDiff = 0; // TODO: RGBtoHSL(color1).a - RGBtoHSL(color2).a;
+  const w1 = (((w * aDiff == -1) ? w : (w + aDiff) / (1 + w * aDiff)) + 1) / 2.0;
   const w2 = 1 - w1;
   const rgb = [color1[0] * w1 + color2[0] * w2,
       color1[1] * w1 + color2[1] * w2,
@@ -852,6 +805,64 @@ function desaturate(color, amount) {
   hsl[1] = clamp$1(hsl[1]);
   // return hsla(color, hsl);
   return hslToRGB(...hsl)
+}
+
+// Color Blending
+// ref: http://www.w3.org/TR/compositing-1
+function colorBlend(mode, color1, color2) {
+  // TODO: alpha/transparency
+  const ab = 1; // color1.alpha; // result
+  const as = 1; // color2.alpha;
+  let cb; // backdrop
+  let cs;// source
+  let ar;
+  let cr;
+  const r = [];
+
+  ar = as + ab * (1 - as);
+  for (let i = 0; i < 3; i++) {
+      cb = color1[i] / 255;
+      cs = color2[i] / 255;
+      cr = mode(cb, cs);
+      if (ar) {
+          cr = (as * cs + ab * (cb -
+              as * (cb + cs - cr))) / ar;
+      }
+      // r[i] = cr * 255;
+      r[i] = Math.round(cr * 255);
+  }
+  // return new Color(r, ar);
+  return r;
+}
+
+const colorBlendModeFns = {
+  multiply: function (cb, cs) { return cb * cs; },
+  screen: function (cb, cs) { return cb + cs - cb * cs; },
+  overlay: function (cb, cs) {
+    cb *= 2;
+    return (cb <= 1)
+      ? colorBlendModeFns.multiply(cb, cs)
+      : colorBlendModeFns.screen(cb - 1, cs);
+  },
+  softlight: function (cb, cs) {
+    let d = 1;
+    let e = cb;
+    if (cs > 0.5) {
+      e = 1;
+      d = (cb > 0.25)
+        ? Math.sqrt(cb)
+        : ((16 * cb - 12) * cb + 4) * cb;
+    }
+    return cb - (1 - 2 * cs) * e * (d - cb);
+  },
+  hardlight: function (cb, cs) { return colorBlendModeFns.overlay(cs, cb); },
+  difference: function (cb, cs) { return Math.abs(cb - cs); },
+  exclusion: function (cb, cs) { return cb + cs - 2 * cb * cs; },
+};
+for (const f in colorBlendModeFns) {
+  if (colorBlendModeFns.hasOwnProperty(f)) {
+    colorBlend[f] = colorBlend.bind(null, colorBlendModeFns[f]);
+  }
 }
 
 // Convert rgb into relative luminance (0-100) in percentage

@@ -1,8 +1,32 @@
-# tpcs.js
+# 👨‍🎨 tpcs.js — Turbo-Powered Color Schemes
 
-[Turbo](https://ai.googleblog.com/2019/08/turbo-improved-rainbow-colormap-for.html)-powered color schemes for JS
+<a href="https://www.npmjs.com/package/tpcs.js">
+    <img alt="npm downloads" src="https://img.shields.io/npm/dt/tpcs.js.svg?style=flat" />
+</a>
+<a href="https://www.npmjs.com/package/tpcs.js">
+    <img alt="npm version" src="https://img.shields.io/npm/v/tpcs.js.svg?style=flat" />
+</a>
+<a href="./LICENSE">
+    <img alt="license" src="https://img.shields.io/badge/license-MIT-blue.svg" />
+</a>
 
-Based on [Rex Riepe's TPCS for LESS](https://github.com/rexriepe/tpcs), (and the [demo site](https://rexriepe.github.io/tpcs/))
+---
+
+[Turbo](https://ai.googleblog.com/2019/08/turbo-improved-rainbow-colormap-for.html) is a rainbow colormap
+
+tpcs.js is based on [Rex Riepe's TPCS for LESS](https://github.com/rexriepe/tpcs) (and his [demo site](https://rexriepe.github.io/tpcs/))
+
+## Install
+
+```
+npm install --save tpcs.js
+```
+
+## Usage
+
+WIP
+
+---
 
 ## Contributing
 

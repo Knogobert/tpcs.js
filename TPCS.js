@@ -267,7 +267,9 @@ const turbo = [
 ];
 
 // * Variables
-const baseColor = '#B8D8E0';
+// const baseColor = '#B8D8E0';
+// const baseColor = '#0000E0';
+const baseColor = '#DC143C'; // crimson
 
 // run TPCS and set all 9 semantic color variables:
 // action, reaction, alternate, accent
@@ -280,9 +282,9 @@ function getColorScheme(color) {
 
   const { repColor, repColorNumber } = getRepColor(color, turbo);
   const actionBase = repColor;
-  console.log('getRepColor { repColor, repColorNumber }:', repColor, repColorNumber);
+  // console.log('getRepColor { repColor, repColorNumber }:', repColor, repColorNumber);
   const { reactionBase, altBase, accentBase } = getColorBases(repColorNumber, turbo);
-  console.log('getColorBases { reactionBase, altBase, accentBase }:', reactionBase, altBase, accentBase);
+  // console.log('getColorBases { reactionBase, altBase, accentBase }:', reactionBase, altBase, accentBase);
 
   const { action } = getAction(actionBase);
   const { reaction } = getReaction(reactionBase);
@@ -296,6 +298,7 @@ function getColorScheme(color) {
   // .set-highlight();
 
   return {
+    baseColor: hexToRGB(color),
     actionBase,
     reactionBase,
     altBase,
@@ -323,7 +326,7 @@ function getRepColor(color, list = []) {
   let firstWin = null;
 
   const tournament = (champ, contender, index) => {
-    if (index <= iterations) {
+    if (index < iterations) {
       const { closer, farther } = getCloserFartherHue(color, champ, contender);
       const winner = champ === closer ? champ : contender;
       const nextContender = list[index + 2];
@@ -411,7 +414,7 @@ function getAlternate(altBase) {
 function getAccent(accentBase) {
 	// accent is meant to be used sparingly with @action, @reaction and @alternate
 	// its extra saturation and lightness is good for drawing attention or balancing designs
-	return { accent: lighten(saturate(mix(getLumafix(accentBase), accentBase, 20), 10), 5) }; // !refactor , probably doesn't work
+	return { accent: lighten(saturate(mix(getLumafix(accentBase), accentBase, 20), 10), 5) };
 }
 
 function getInfo(actionBase, reactionBase) {
@@ -581,6 +584,88 @@ const roundNumber = (number, decimals = 0) => Number(
   (`${Math.round(`${number}e${decimals}`)}e-${decimals}`),
 );
 
+function hexToRGB(h) {
+  let r = 0;
+  let g = 0;
+  let b = 0;
+
+  if (h.length === 4) {
+    // 3 digits
+    r = Number(`0x${h[1]}${h[1]}`);
+    g = Number(`0x${h[2]}${h[2]}`);
+    b = Number(`0x${h[3]}${h[3]}`);
+  } else if (h.length === 7) {
+    // 6 digits
+    r = Number(`0x${h[1]}${h[2]}`);
+    g = Number(`0x${h[3]}${h[4]}`);
+    b = Number(`0x${h[5]}${h[6]}`);
+  }
+
+  return [r, g, b];
+}
+
+function RGBToHSL(r, g, b) {
+  r /= 255;
+  g /= 255;
+  b /= 255;
+  // const a = alpha;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const d = max - min;
+  let h;
+  let s;
+  let l = (max + min) / 2;
+  if (max === min) {
+    h = s = 0;
+  } else {
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case r:
+        h = (g - b) / d + (g < b ? 6 : 0);
+        break;
+      case g:
+        h = (b - r) / d + 2;
+        break;
+      case b:
+        h = (r - g) / d + 4;
+        break;
+      }
+    h /= 6;
+  }
+  // return { h: h * 360, s: s, l: l, a: a };
+  return [h * 360, s, l];
+}
+
+/**
+ * hslToRGB
+ *
+ * Adapted from: http://axonflux.com/handy-rgb-to-hsl-and-rgb-to-hsv-color-model-c
+ * By https://github.com/micro-js/hsl-to-rgb/blob/master/lib/index.js
+ */
+function hslToRGB (h, s, l) {
+  // Achromatic
+  if (s === 0) return [l, l, l]
+  h /= 360
+
+  const q = l < 0.5 ? l * (1 + s) : l + s - l * s
+  const p = 2 * l - q
+
+  return [
+    Math.round(hueToRGB(p, q, h + 1/3) * 255),
+    Math.round(hueToRGB(p, q, h) * 255),
+    Math.round(hueToRGB(p, q, h - 1/3) * 255)
+  ]
+}
+
+function hueToRGB (p, q, t) {
+  if (t < 0) t += 1
+  if (t > 1) t -= 1
+  if (t < 1/6) return p + (q - p) * 6 * t
+  if (t < 1/2) return q
+  if (t < 2/3) return p + (q - p) * (2/3 - t) * 6
+  return p
+}
+
 // .contrast-text-against(color: @background; @contrast-standard: 7; @mode: auto;) {
 // 	// adds tone to background color until contrast standard is met
 // 	// uses result as text color
@@ -716,37 +801,6 @@ function getDistance(color1, color2) {
   return roundNumber(Math.sqrt(rValuesAB + gValuesAB + bValuesAB), 2);
 }
 
-/**
- * hslToRGB
- *
- * Adapted from: http://axonflux.com/handy-rgb-to-hsl-and-rgb-to-hsv-color-model-c
- * By https://github.com/micro-js/hsl-to-rgb/blob/master/lib/index.js
- */
-function hslToRGB (h, s, l) {
-  // Achromatic
-  if (s === 0) return [l, l, l]
-  h /= 360
-
-  var q = l < 0.5 ? l * (1 + s) : l + s - l * s
-  var p = 2 * l - q
-
-  return [
-    Math.round(hueToRGB(p, q, h + 1/3) * 255),
-    Math.round(hueToRGB(p, q, h) * 255),
-    Math.round(hueToRGB(p, q, h - 1/3) * 255)
-  ]
-}
-
-function hueToRGB (p, q, t) {
-  if (t < 0) t += 1
-  if (t > 1) t -= 1
-  if (t < 1/6) return p + (q - p) * 6 * t
-  if (t < 1/2) return q
-  if (t < 2/3) return p + (q - p) * (2/3 - t) * 6
-
-  return p
-}
-
 // Mix colors
 // Copyright (c) 2006-2009 Hampton Catlin, Natalie Weizenbaum, and Chris Eppstein
 // http://sass-lang.com
@@ -756,12 +810,14 @@ function mix(color1, color2, weight) {
   if (!weight) weight = 50;
   const p = weight / 100.0;
   const w = p * 2 - 1;
-  const aDiff = 0; // TODO: RGBtoHSL(color1).a - RGBtoHSL(color2).a;
+  const aDiff = 0; // TODO: RGBtoHSL(...color1).a - RGBtoHSL(...color2).a;
   const w1 = (((w * aDiff == -1) ? w : (w + aDiff) / (1 + w * aDiff)) + 1) / 2.0;
   const w2 = 1 - w1;
-  const rgb = [color1[0] * w1 + color2[0] * w2,
-      color1[1] * w1 + color2[1] * w2,
-      color1[2] * w1 + color2[2] * w2];
+  const rgb = [
+    Math.round(color1[0] * w1 + color2[0] * w2),
+    Math.round(color1[1] * w1 + color2[1] * w2),
+    Math.round(color1[2] * w1 + color2[2] * w2)
+  ];
   const alpha = 1;
   return rgb;
   // var rgb = [color1.rgb[0] * w1 + color2.rgb[0] * w2,
@@ -776,7 +832,7 @@ function clamp$1(val) {
 }
 
 function lighten(color, amount) {
-  let hsl = RGBToHSL(color);
+  let hsl = RGBToHSL(...color);
   hsl[2] += amount / 100;
   hsl[2] = clamp$1(hsl[2]);
   // return hsla(color, hsl);
@@ -784,7 +840,7 @@ function lighten(color, amount) {
 }
 
 function darken(color, amount) {
-  let hsl = RGBToHSL(color);
+  let hsl = RGBToHSL(...color);
   hsl[2] -= amount / 100;
   hsl[2] = clamp$1(hsl[2]);
   // return hsla(color, hsl);
@@ -792,7 +848,7 @@ function darken(color, amount) {
 }
 
 function saturate(color, amount) {
-  let hsl = RGBToHSL(color);
+  let hsl = RGBToHSL(...color);
   hsl[1] += amount / 100;
   hsl[1] = clamp$1(hsl[1]);
   // return hsla(color, hsl);
@@ -800,7 +856,7 @@ function saturate(color, amount) {
 }
 
 function desaturate(color, amount) {
-  let hsl = RGBToHSL(color);
+  let hsl = RGBToHSL(...color);
   hsl[1] -= amount / 100;
   hsl[1] = clamp$1(hsl[1]);
   // return hsla(color, hsl);
@@ -881,71 +937,12 @@ function luma(r, g, b) {
   return 0.2126 * r + 0.7152  * g + 0.0722  * b;
 }
 
-function hexToRGB(h) {
-  let r = 0;
-  let g = 0;
-  let b = 0;
-
-  if (h.length === 4) {
-    // 3 digits
-    r = Number(`0x${h[1]}${h[1]}`);
-    g = Number(`0x${h[2]}${h[2]}`);
-    b = Number(`0x${h[3]}${h[3]}`);
-  } else if (h.length === 7) {
-    // 6 digits
-    r = Number(`0x${h[1]}${h[2]}`);
-    g = Number(`0x${h[3]}${h[4]}`);
-    b = Number(`0x${h[5]}${h[6]}`);
-  }
-
-  return [r, g, b];
-}
-
-function RGBToHSL(rgbArray = [128, 128, 128]) {
-  let [r, g, b] = rgbArray;
-  // Make r, g, and b fractions of 1
-  /* eslint-disable no-param-reassign */
-  r /= 255;
-  g /= 255;
-  b /= 255;
-  /* eslint-enable no-param-reassign */
-
-  // Find greatest and smallest channel values
-  const cmin = Math.min(r, g, b);
-  const cmax = Math.max(r, g, b);
-  const delta = cmax - cmin;
-  let h = 0;
-  let s = 0;
-  let l = 0;
-
-  // Calculate hue
-  if (delta === 0) h = 0; // No difference
-  else if (cmax === r) h = ((g - b) / delta) % 6; // Red is max
-  else if (cmax === g) h = (b - r) / delta + 2; // Green is max
-  else h = (r - g) / delta + 4; // Blue is max
-  h = Math.round(h * 60);
-  // Make negative hues positive behind 360°
-  if (h < 0) h += 360;
-
-  // Calculate lightness
-  l = (cmax + cmin) / 2;
-
-  // Calculate saturation
-  s = delta === 0 ? 0 : delta / (1 - Math.abs(2 * l - 1));
-
-  // Multiply l and s by 100
-  s = +(s * 100).toFixed(1);
-  l = +(l * 100).toFixed(1);
-
-  return [h, s, l];
-}
-
 function getCloserFartherHue(compare, c1, c2) {
   // compares c1 and c2 to a given color, assigns a farther and closer
   // comparison is hue
-
-  const diffMC1 = Math.abs(RGBToHSL(hexToRGB(compare))[0] - RGBToHSL(c1)[0]);
-  const diffMC2 = Math.abs(RGBToHSL(hexToRGB(compare))[0] - RGBToHSL(c2)[0]);
+  const compareHSL = RGBToHSL(...hexToRGB(compare));
+  const diffMC1 = Math.abs(compareHSL[0] - RGBToHSL(...c1)[0]);
+  const diffMC2 = Math.abs(compareHSL[0] - RGBToHSL(...c2)[0]);
 
   if (diffMC2 > diffMC1) {
     return {
@@ -1044,4 +1041,12 @@ function getLumafix(color, compare = baseColor, strength = 100) {
 //   color: #ff61e9;
 // }
 
-console.log('getColorScheme:', getColorScheme(baseColor));
+const scheme = getColorScheme(baseColor);
+// console.log('getColorScheme:', scheme);
+
+const htmlColorStrings = Object.keys(scheme).map((color) => {
+  // return `<span style="background-color: rgba(${scheme[color]}, 1)">${color}</span>`;
+  return `rgb(${scheme[color]}): ${color}`;
+});
+
+console.log('HTML Scheme:', htmlColorStrings);

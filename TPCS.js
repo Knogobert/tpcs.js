@@ -269,7 +269,9 @@ const turbo = [
 // * Variables
 // const baseColor = '#B8D8E0';
 // const baseColor = '#0000E0';
-const baseColor = '#DC143C'; // crimson
+// const baseColor = '#DC143C'; // crimson
+const baseColor = '#4180DD';
+const baseColorRGB = hexToRGB(baseColor);
 
 // run TPCS and set all 9 semantic color variables:
 // action, reaction, alternate, accent
@@ -282,9 +284,7 @@ function getColorScheme(color) {
 
   const { repColor, repColorNumber } = getRepColor(color, turbo);
   const actionBase = repColor;
-  // console.log('getRepColor { repColor, repColorNumber }:', repColor, repColorNumber);
   const { reactionBase, altBase, accentBase } = getColorBases(repColorNumber, turbo);
-  // console.log('getColorBases { reactionBase, altBase, accentBase }:', reactionBase, altBase, accentBase);
 
   const { action } = getAction(actionBase);
   const { reaction } = getReaction(reactionBase);
@@ -292,26 +292,26 @@ function getColorScheme(color) {
   const { accent } = getAccent(accentBase);
 
   const { info } = getInfo(actionBase, reactionBase);
-  // .set-success();
+  const { success } = getSuccess(actionBase, reactionBase);
   const { warning } = getWarning(actionBase, reactionBase);
-  // .set-failure();
-  // .set-highlight();
+  const { failure } = getFailure(actionBase, reactionBase);
+  const { highlight } = getHighlight(actionBase, reactionBase);
 
   return {
     baseColor: hexToRGB(color),
-    actionBase,
-    reactionBase,
-    altBase,
-    accentBase,
+    // actionBase,
+    // reactionBase,
+    // altBase,
+    // accentBase,
     action,
     reaction,
     alternate,
     accent,
     info,
-    // success.
+    success,
     warning,
-    // failure.
-    // highlight.
+    failure,
+    highlight,
   };
 }
 
@@ -436,7 +436,6 @@ function getWarning(actionBase, reactionBase) {
 	const orange = turbo[172];
   const yellow = turbo[152];
   const white = [255, 255, 255];
-  const baseColorRGB = hexToRGB(baseColor);
   let warningBase = orange;
 	if ( getDistance(orange, actionBase) < 70 || getDistance(orange, reactionBase) < 70) warningBase = yellow;
 
@@ -451,127 +450,50 @@ function getWarning(actionBase, reactionBase) {
   }
 }
 
-/*
-.set-success() {
+function getSuccess(actionBase, reactionBase) {
 	// success indicates that an action worked or a positive response came through
-	// its green tells users they're good to go
+  // its green tells users they're good to go
+  const green = turbo[105];
+  const lightgreen = turbo[130];
+  let successBase = green;
+	if ( getDistance(green, actionBase) < 150 || getDistance(green, reactionBase) < 150) successBase = lightgreen;
 
-	@green: extract(turbo, 105);
-	@lightgreen: extract(turbo, 130);
-
-	.set-distance-action() {
-		getDistance(@green, actionBase);
-		@distance-action: @distance;
-	}
-
-	.set-distance-reaction() {
-		getDistance(@green, reactionBase);
-		@distance-reaction: @distance;
-	}
-
-	.set-success-base() when (@distance-action < 150) or (@distance-reaction < 150) {
-		@success-base: @lightgreen;
-	}
-
-	.set-success-base() when (default()) {
-		@success-base: @green;
-	}
-
-	.set-success-final() {
-		.getLumafix(@success-base);
-		@success:mix(@lumafix, @success-base, 20%);
-	}
-
-	.set-distance-action();
-	.set-distance-reaction();
-
-	.set-success-base();
-
-	.set-success-final();
+	return { success: mix(getLumafix(successBase, baseColor, 50), successBase, 20) };
 }
 
-.set-failure() {
+function getFailure(actionBase, reactionBase) {
 	// success's opposite and complement, failure's red tells the user something is wrong
 	// good for negative server responses, missing info, or drawing attention to faults
+  const red = turbo[225];
+  const darkred = turbo[240];
+  let failureBase = red;
+	if ( getDistance(red, actionBase) < 100 || getDistance(red, reactionBase) < 100) failureBase = darkred;
 
-	@red: extract(turbo, 225);
-	@darkred: extract(turbo, 240);
-
-	.set-distance-action() {
-		getDistance(@red, actionBase);
-		@distance-action: @distance;
+	if (luma(...baseColorRGB) > 0.5) {
+    return { failure: getLumafix(failureBase, baseColor, 75) };
 	}
-
-	.set-distance-reaction() {
-		getDistance(@red, reactionBase);
-		@distance-reaction: @distance;
-	}
-
-	.set-failure-base() when (@distance-action < 100) or (@distance-reaction < 100) {
-		@failure-base: @darkred;
-	}
-
-	.set-failure-base() when (default()) {
-		@failure-base: @red;
-	}
-
-	.set-failure-final() when (luma(baseColor) > 50%) {
-		.getLumafix(@failure-base, baseColor, 75%);
-		@failure: @lumafix;
-	}
-
-	.set-failure-final() when (default()) {
-		.getLumafix(@failure-base, baseColor, 25%);
-		@failure: @lumafix;
-	}
-
-	.set-distance-action();
-	.set-distance-reaction();
-
-	.set-failure-base();
-
-	.set-failure-final();
+  return { failure: getLumafix(failureBase, baseColor, 25) };
 }
 
-.set-highlight() {
-	// highlight is a bright color meant to evoke a highlighter and print text
+function getHighlight(actionBase, reactionBase) {
+  // highlight is a bright color meant to evoke a highlighter and print text
 	// depending on the base color, it can be cyan, magenta or yellow
+  const magentaToMix = [255, 0, 255]
+  const magenta = mix(turbo[222], magentaToMix, 60)
+  const yellow = turbo[152];
+  const cyan = turbo[73];
+  const white = [255, 255, 255];
+  let highlightBase = magenta;
+	if (baseColorRGB[0] > 85) highlightBase = yellow;
+	else if (baseColorRGB[0] > 170) highlightBase = cyan;
 
-	@yellow: extract(turbo, 152);
-	@cyan: extract(turbo, 73);
-	@magenta: mix(extract(turbo, 222), magenta, 60%);
-
-	.set-highlight-base() when (red(baseColor) > 85) {
-		@highlight-base: @yellow;
+	if (luma(...baseColorRGB) > 0.5) {
+    return { highlight: colorBlend(colorBlendModeFns.overlay, getLumafix(highlightBase, baseColor, 33), white) };
+	} else if (luma(...baseColorRGB) > 0.9) {
+    return { highlight: colorBlend(colorBlendModeFns.overlay, getLumafix(highlightBase, baseColor, 25), white) };
 	}
-
-	.set-highlight-base() when (red(baseColor) > 170) {
-		@highlight-base: @cyan;
-	}
-
-	.set-highlight-base() when (default()) {
-		@highlight-base: @magenta;
-	}
-
-	.set-highlight-final() when (luma(baseColor) > 50%) {
-		.getLumafix(@highlight-base, baseColor, 33%);
-		@highlight:overlay(@lumafix, white);
-	}
-
-	.set-highlight-final() when (luma(baseColor) > 90%) {
-		.getLumafix(@highlight-base, baseColor, 25%);
-		@highlight:overlay(@lumafix, white);
-	}
-
-	.set-highlight-final() when (default()) {
-		.getLumafix(@highlight-base,  baseColor, 50%);
-		@highlight:overlay(@lumafix, white);
-	}
-
-	.set-highlight-base();
-	.set-highlight-final();
+  return { highlight: colorBlend(colorBlendModeFns.overlay, getLumafix(highlightBase, baseColor, 50), white) };
 }
-*/
 
 // * Utility mixins
 // many of these are "borrowed" from Strapless (http://strapless.io)
@@ -818,7 +740,6 @@ function mix(color1, color2, weight) {
     Math.round(color1[1] * w1 + color2[1] * w2),
     Math.round(color1[2] * w1 + color2[2] * w2)
   ];
-  const alpha = 1;
   return rgb;
   // var rgb = [color1.rgb[0] * w1 + color2.rgb[0] * w2,
   //     color1.rgb[1] * w1 + color2.rgb[1] * w2,
@@ -925,7 +846,6 @@ for (const f in colorBlendModeFns) {
 // Just like http://lesscss.org/functions/#color-channel-luma
 // Following the standardized formula from https://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef
 function luma(r, g, b) {
-  /* eslint-disable no-param-reassign */
   r /= 255;
   g /= 255;
   b /= 255;
@@ -933,7 +853,7 @@ function luma(r, g, b) {
   r = (r <= 0.03928) ? r / 12.92 : Math.pow(((r + 0.055) / 1.055), 2.4);
   g = (g <= 0.03928) ? g / 12.92 : Math.pow(((g + 0.055) / 1.055), 2.4);
   b = (b <= 0.03928) ? b / 12.92 : Math.pow(((b + 0.055) / 1.055), 2.4);
-  /* eslint-enable no-param-reassign */
+
   return 0.2126 * r + 0.7152  * g + 0.0722  * b;
 }
 
@@ -992,15 +912,15 @@ function getLumafix(color, compare = baseColor, strength = 100) {
 
   // tone keeps lumafix from flipping back and forth
   // between shading and tinting
-  if (luma(color) > luma(compareColor)) tone = 'black';
-  if (luma(compareColor) >= luma(color)) tone = 'white';
+  if (luma(...color) > luma(...compareColor)) tone = 'black';
+  if (luma(...compareColor) >= luma(...color)) tone = 'white';
 
   const lumafix = (colorToFix, compare, index) => {
-    if (index <= iterations && luma(colorToFix) < luma(compare) && tone === 'white') {
+    if (index <= iterations && luma(...colorToFix) < luma(...compare) && tone === 'white') {
       const newColor = lighten(colorToFix, 0.5 * index);
       return lumafix(newColor, compare, index + 1);
     }
-    if (index <= iterations && luma(colorToFix) > luma(compare) && tone === 'black') {
+    if (index <= iterations && luma(...colorToFix) > luma(...compare) && tone === 'black') {
       const newColor = darken(colorToFix, 0.5 * index);
       return lumafix(newColor, compare, index + 1);
     }
@@ -1013,32 +933,17 @@ function getLumafix(color, compare = baseColor, strength = 100) {
 }
 
 // * Temp
-// let baseColor: #4180DD;
-
-// .colorz {
-//   color: baseColor; // base-color
-//   color: @action; // action
-//   color: @info; // info
-//   color: @success; // success
-//   color: @reaction; // reaction
-//   color: @warning; // warning
-//   color: @failure; // failure
-//   color: @alternate; // alternate
-//   color: @accent; // accent
-//   color: @highlight; // highlight
-// }
-
-// .colorz {
-//   color: #4180DD;
-//   color: #3585fd;
-//   color: #1c9ecd;
-//   color: #3ee06b;
-//   color: #d99623;
-//   color: #e5e80e;
-//   color: #d93104;
-//   color: #3dd448;
-//   color: #0ceadb;
-//   color: #ff61e9;
+// .colorFromTPCSdotLess {
+//   color: #4180DD; // baseColor
+//   color: #3585fd; // action
+//   color: #d99623; // reaction
+//   color: #3dd448; // alternate
+//   color: #0ceadb; // accent
+//   color: #1c9ecd; // info
+//   color: #3ee06b; // success
+//   color: #e5e80e; // warning
+//   color: #d93104; // failure
+//   color: #ff61e9; // highlight
 // }
 
 const scheme = getColorScheme(baseColor);

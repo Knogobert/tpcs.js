@@ -1,5 +1,7 @@
 # 👨‍🎨 tpcs.js — Turbo-Powered Color Schemes
 
+![turbo-colormap](https://user-images.githubusercontent.com/770560/89133643-3c10e580-d4b9-11ea-9cc1-07bd44bada73.png)
+
 <a href="https://www.npmjs.com/package/tpcs.js">
     <img alt="npm downloads" src="https://img.shields.io/npm/dt/tpcs.js.svg?style=flat" />
 </a>
@@ -15,6 +17,10 @@
 [Turbo](https://ai.googleblog.com/2019/08/turbo-improved-rainbow-colormap-for.html) is a rainbow colormap
 
 tpcs.js is based on [Rex Riepe's TPCS for LESS](https://github.com/rexriepe/tpcs) (and his [demo site](https://rexriepe.github.io/tpcs/))
+
+It creates color schemes like this:
+
+<img width="604" alt="image" src="https://user-images.githubusercontent.com/770560/89133696-b9d4f100-d4b9-11ea-8f0b-e7ba5cc59048.png">
 
 ## Install
 

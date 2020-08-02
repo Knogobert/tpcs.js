@@ -30,7 +30,35 @@ npm install --save tpcs.js
 
 ## Usage
 
-WIP
+Import tpcs.js in your preferred way.
+```
+import tpcs from 'tpcs.js';
+```
+Then call the function and pass along a hexadecimal color-code string as argument
+Or pass an array with RGB values 0-255, syntaxed as `[R, G, B]`.
+
+```
+tpcs('#B4D4AA')
+// OR
+tpcs([220, 20, 60])
+```
+
+This returns an object with the generated color scheme, where the values are RGB-arrays, syntaxed as `[R, G, B]`.
+
+```
+{
+  "baseColor": [180, 212, 170],
+  "action": [96, 243, 54],
+  "reaction": [196, 93, 81],
+  "alternate": [253, 175, 75],
+  "accent": [223, 242, 62],
+  "info": [93, 204, 240],
+  "success": [165, 247, 52],
+  "warning": [253, 200, 40],
+  "failure": [233, 149, 137],
+  "highlight": [255, 255, 94]
+}
+```
 
 ---
 

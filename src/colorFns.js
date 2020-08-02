@@ -122,7 +122,7 @@ export function getDistance(color1, color2) {
 export function getCloserFartherHue(compare, c1, c2) {
   // compares c1 and c2 to a given color, assigns a farther and closer
   // comparison is hue
-  const compareHSL = RGBToHSL(...hexToRGB(compare));
+  const compareHSL = RGBToHSL(...compare);
   const diffMC1 = Math.abs(compareHSL[0] - RGBToHSL(...c1)[0]);
   const diffMC2 = Math.abs(compareHSL[0] - RGBToHSL(...c2)[0]);
 

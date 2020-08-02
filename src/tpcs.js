@@ -20,39 +20,42 @@ import {
   getCloserFartherHue,
 } from './colorFns';
 
-// * Variables
-// const baseColor = '#B8D8E0';
-// const baseColor = '#0000E0';
-// const baseColor = '#DC143C'; // crimson
-const baseColor = '#4180DD';
-const baseColorRGB = hexToRGB(baseColor);
-
 // run TPCS and set all 9 semantic color variables:
 // action, reaction, alternate, accent
 // info, success, warning, failure, highlight
 
 // * TPCS mixins
-function getColorScheme(color) {
+/**
+ * gerColorScheme
+ * @param {String|Array} color, hexadecimal color code with hashtag OR array with RGB values 0-255
+ * @example '#DC143C'
+ * @example [65,128,221]
+ *
+ * @returns {Object} colorScheme
+ * */
+export default function getColorScheme(color = '#DC143C') {
   // the main mixin
   // sets all color variables
+  // const baseColorHex = '#4180DD';
+  const baseColor = typeof color === 'string' ? hexToRGB(color) : color;
 
-  const { repColor, repColorNumber } = getRepColor(color, turbo);
+  const { repColor, repColorNumber } = getRepColor(baseColor, turbo);
   const actionBase = repColor;
   const { reactionBase, altBase, accentBase } = getColorBases(repColorNumber, turbo);
 
-  const { action } = getAction(actionBase);
-  const { reaction } = getReaction(reactionBase);
-  const { alternate } = getAlternate(altBase);
-  const { accent } = getAccent(accentBase);
+  const { action } = getAction(baseColor, actionBase);
+  const { reaction } = getReaction(baseColor, reactionBase);
+  const { alternate } = getAlternate(baseColor, altBase);
+  const { accent } = getAccent(baseColor, accentBase);
 
-  const { info } = getInfo(actionBase, reactionBase);
-  const { success } = getSuccess(actionBase, reactionBase);
-  const { warning } = getWarning(actionBase, reactionBase);
-  const { failure } = getFailure(actionBase, reactionBase);
-  const { highlight } = getHighlight(actionBase, reactionBase);
+  const { info } = getInfo(baseColor, actionBase, reactionBase);
+  const { success } = getSuccess(baseColor, actionBase, reactionBase);
+  const { warning } = getWarning(baseColor, actionBase, reactionBase);
+  const { failure } = getFailure(baseColor, actionBase, reactionBase);
+  const { highlight } = getHighlight(baseColor);
 
   return {
-    baseColor: hexToRGB(color),
+    baseColor,
     // actionBase,
     // reactionBase,
     // altBase,
@@ -146,32 +149,32 @@ function getColorBases(colorNum, list = [], offset = 32) {
 }
 
 // * Semantic colors
-function getAction(actionBase) {
+function getAction(baseColor, actionBase) {
   // action means "do something," it's great for submit buttons
   // it's usually pretty close to the base color
-	return { action: getLumafix(actionBase, baseColorRGB, 38) };
+	return { action: getLumafix(actionBase, baseColor, 38) };
 }
 
-function getReaction(reactionBase) {
+function getReaction(baseColor, reactionBase) {
   // reaction is for responding, usually after an action
 	// a good second step or confirmation color
 	// reaction is typically close to being a complement of action
-  return { reaction: getLumafix(reactionBase, baseColorRGB, 38) };
+  return { reaction: getLumafix(reactionBase, baseColor, 38) };
 }
 
-function getAlternate(altBase) {
+function getAlternate(baseColor, altBase) {
   // alternate is meant to be an alternate color to action and reaction
 	// it can sometimes make a good stand-in for other colors in the scheme
-	return { alternate: getLumafix(altBase, baseColorRGB, 38) };
+	return { alternate: getLumafix(altBase, baseColor, 38) };
 }
 
-function getAccent(accentBase) {
+function getAccent(baseColor, accentBase) {
 	// accent is meant to be used sparingly with @action, @reaction and @alternate
 	// its extra saturation and lightness is good for drawing attention or balancing designs
-	return { accent: lighten(saturate(mix(getLumafix(accentBase, baseColorRGB), accentBase, 20), 10), 5) };
+	return { accent: lighten(saturate(mix(getLumafix(accentBase, baseColor), accentBase, 20), 10), 5) };
 }
 
-function getInfo(actionBase, reactionBase) {
+function getInfo(baseColor, actionBase, reactionBase) {
 	// info is a light blue or teal
 	// it indicates innocuous, low-urgency information
 	const blue = turbo[64];
@@ -179,11 +182,11 @@ function getInfo(actionBase, reactionBase) {
   let infoBase = blue;
 	if ( getDistance(blue, actionBase) < 70 || getDistance(blue, reactionBase) < 70) infoBase = teal;
 
-	return { info: getLumafix(infoBase, baseColorRGB, 50) };
+	return { info: getLumafix(infoBase, baseColor, 50) };
 }
 
 
-function getWarning(actionBase, reactionBase) {
+function getWarning(baseColor, actionBase, reactionBase) {
 	// warning is a high urgency version of its pairing, info
 	// its orange/yellow is a complement to info's teal/blue
 	// remember: warning comes before the failure, failure after
@@ -193,18 +196,18 @@ function getWarning(actionBase, reactionBase) {
   let warningBase = orange;
 	if ( getDistance(orange, actionBase) < 70 || getDistance(orange, reactionBase) < 70) warningBase = yellow;
 
-	if (luma(...baseColorRGB) > 0.56) {
-		return { warning: colorBlend(colorBlendModeFns.softlight, mix(getLumafix(warningBase, baseColorRGB), warningBase, 70), warningBase) };
-	} else if (luma(...baseColorRGB) > 0.32) {
-		return { warning: colorBlend(colorBlendModeFns.overlay, mix(getLumafix(warningBase, baseColorRGB), warningBase, 70), warningBase) };
-	} else if (luma(...baseColorRGB) > 0.16) {
-		return { warning: colorBlend(colorBlendModeFns.overlay, mix(getLumafix(warningBase, baseColorRGB), warningBase, 60), warningBase) };
+	if (luma(...baseColor) > 0.56) {
+		return { warning: colorBlend(colorBlendModeFns.softlight, mix(getLumafix(warningBase, baseColor), warningBase, 70), warningBase) };
+	} else if (luma(...baseColor) > 0.32) {
+		return { warning: colorBlend(colorBlendModeFns.overlay, mix(getLumafix(warningBase, baseColor), warningBase, 70), warningBase) };
+	} else if (luma(...baseColor) > 0.16) {
+		return { warning: colorBlend(colorBlendModeFns.overlay, mix(getLumafix(warningBase, baseColor), warningBase, 60), warningBase) };
 	} else {
-    return { warning: colorBlend(colorBlendModeFns.overlay, mix(getLumafix(warningBase, baseColorRGB), warningBase, 50), white) };
+    return { warning: colorBlend(colorBlendModeFns.overlay, mix(getLumafix(warningBase, baseColor), warningBase, 50), white) };
   }
 }
 
-function getSuccess(actionBase, reactionBase) {
+function getSuccess(baseColor, actionBase, reactionBase) {
 	// success indicates that an action worked or a positive response came through
   // its green tells users they're good to go
   const green = turbo[105];
@@ -212,10 +215,10 @@ function getSuccess(actionBase, reactionBase) {
   let successBase = green;
 	if ( getDistance(green, actionBase) < 150 || getDistance(green, reactionBase) < 150) successBase = lightgreen;
 
-	return { success: mix(getLumafix(successBase, baseColorRGB, 50), successBase, 20) };
+	return { success: mix(getLumafix(successBase, baseColor, 50), successBase, 20) };
 }
 
-function getFailure(actionBase, reactionBase) {
+function getFailure(baseColor, actionBase, reactionBase) {
 	// success's opposite and complement, failure's red tells the user something is wrong
 	// good for negative server responses, missing info, or drawing attention to faults
   const red = turbo[225];
@@ -223,13 +226,13 @@ function getFailure(actionBase, reactionBase) {
   let failureBase = red;
 	if ( getDistance(red, actionBase) < 100 || getDistance(red, reactionBase) < 100) failureBase = darkred;
 
-	if (luma(...baseColorRGB) > 0.5) {
-    return { failure: getLumafix(failureBase, baseColorRGB, 75) };
+	if (luma(...baseColor) > 0.5) {
+    return { failure: getLumafix(failureBase, baseColor, 75) };
 	}
-  return { failure: getLumafix(failureBase, baseColorRGB, 25) };
+  return { failure: getLumafix(failureBase, baseColor, 25) };
 }
 
-function getHighlight(actionBase, reactionBase) {
+function getHighlight(baseColor) {
   // highlight is a bright color meant to evoke a highlighter and print text
 	// depending on the base color, it can be cyan, magenta or yellow
   const magentaToMix = [255, 0, 255]
@@ -238,15 +241,15 @@ function getHighlight(actionBase, reactionBase) {
   const cyan = turbo[73];
   const white = [255, 255, 255];
   let highlightBase = magenta;
-	if (baseColorRGB[0] > 85) highlightBase = yellow;
-	else if (baseColorRGB[0] > 170) highlightBase = cyan;
+	if (baseColor[0] > 85) highlightBase = yellow;
+	else if (baseColor[0] > 170) highlightBase = cyan;
 
-	if (luma(...baseColorRGB) > 0.5) {
-    return { highlight: colorBlend(colorBlendModeFns.overlay, getLumafix(highlightBase, baseColorRGB, 33), white) };
-	} else if (luma(...baseColorRGB) > 0.9) {
-    return { highlight: colorBlend(colorBlendModeFns.overlay, getLumafix(highlightBase, baseColorRGB, 25), white) };
+	if (luma(...baseColor) > 0.5) {
+    return { highlight: colorBlend(colorBlendModeFns.overlay, getLumafix(highlightBase, baseColor, 33), white) };
+	} else if (luma(...baseColor) > 0.9) {
+    return { highlight: colorBlend(colorBlendModeFns.overlay, getLumafix(highlightBase, baseColor, 25), white) };
 	}
-  return { highlight: colorBlend(colorBlendModeFns.overlay, getLumafix(highlightBase, baseColorRGB, 50), white) };
+  return { highlight: colorBlend(colorBlendModeFns.overlay, getLumafix(highlightBase, baseColor, 50), white) };
 }
 
 // * Temp
@@ -263,13 +266,10 @@ function getHighlight(actionBase, reactionBase) {
 //   color: #ff61e9; // highlight
 // }
 
-const scheme = getColorScheme(baseColor);
-// console.log('getColorScheme:', scheme);
+// const scheme = getColorScheme('#4180DD');
 
-const htmlColorStrings = Object.keys(scheme).map((color) => {
-  // return `<span style="background-color: rgba(${scheme[color]}, 1)">${color}</span>`;
-  return `rgb(${scheme[color]}): ${color}`;
-});
-
-console.log('HTML Scheme:', htmlColorStrings);
+// const htmlColorStrings = Object.keys(scheme).map((color) => {
+//   // return `<span style="background-color: rgba(${scheme[color]}, 1)">${color}</span>`;
+//   return `rgb(${scheme[color]}): ${color}`;
+// });
 

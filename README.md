@@ -48,3 +48,5 @@ npm install
     a UMD build, suitable for use in any environment (including the browser, as a `<script>` tag), that includes the external dependency. This corresponds to the `"browser"` field in package.json
 
 `npm run dev` builds the library, then keeps rebuilding it whenever the source files change using [rollup-watch](https://github.com/rollup/rollup-watch).
+
+`node -r esm "./src/tpcs.js"` to run the file directly in node with esm module support.

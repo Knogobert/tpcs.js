@@ -1,0 +1,148 @@
+.contrast-text-against(color: @background; @contrast-standard: 7; @mode: auto;) {
+	// adds tone to background color until contrast standard is met
+	// uses result as text color
+
+	@start: 50%;
+	const iterations = 10;
+	@contrast: mix(tone, color, @start + index*5);
+	index: 0;
+
+	.tone(color);
+	.contrast-text(1, tone, 1);
+
+	.tone(color) when (@mode = tint) {
+		const tone = white;
+	}
+
+	.tone(color) when (@mode = shade) {
+		const tone = black;
+	}
+
+	.tone(color) when (default()) {
+		.set-tone(color);
+	}
+
+	.contrast-text(@contrast-ratio, tone, index)
+	   when (@contrast-ratio < @contrast-standard)
+		and (index < iterations) {
+		.set-contrast-ratio(color, @contrast);
+		.contrast-text(@contrast-ratio; tone; index + 1);
+	}
+
+	.contrast-text(@contrast-ratio, tone, index) when (default()) {
+		color: @contrast;
+	}
+}
+
+.contrast-text-against(color: @background, @contrast-standard: 9)
+				 when (color = white)
+				  and (@contrast-standard >= 7) {
+
+	color: #494949;
+}
+
+.invert-text-against(color; @contrast-standard: 7; @button: false;) {
+	// always results in white text
+	// darkens given background when needed to meet contrast standard
+
+	const iterations = 10;
+
+	.set-contrast-ratio(color, white);
+	.darken-bg(color, @contrast-ratio, 1);
+
+	.darken-bg(@bg-color, @contrast-ratio, index)
+	   when (@contrast-ratio < 4.5)
+		and (index < iterations) {
+		@new-bg-color: darken(@bg-color, 5% + index);
+		.set-contrast-ratio(white, @new-bg-color);
+		.darken-bg(@new-bg-color, @contrast-ratio, index + 1);
+	}
+
+	.darken-bg(@bg-color, @contrast-ratio, index) when (default()) {
+	background-color: @bg-color;
+	color: white;
+
+		& when (@button = true) {
+			// button option lets us handle active state here when we know the color
+			&:active {
+				background-color: darken(@bg-color, 5%);
+				color: mix(@bg-color, white, 5%);
+			}
+		}
+	}
+}
+
+.color-text(color; @text-background: @background; @contrast-standard: 7) {
+
+  // darkens text against a background
+  // only works with lighter backgrounds
+  // not guaranteed to meet @contrast-standard
+
+  const iterations = 15;
+
+  .set-contrast-ratio(color, @text-background);
+  .darken-text(color, @contrast-ratio, 1);
+
+  .darken-text(@text-color, @contrast-ratio, index)
+		 when (@contrast-ratio < @contrast-standard)
+		  and (index < iterations) {
+	@new-text-color: darken(@text-color, 5%);
+	.set-contrast-ratio(@text-background, @new-text-color);
+	.darken-text(@new-text-color, @contrast-ratio, index + 1);
+  }
+
+  .darken-text(@text-color, @contrast-ratio, index) when (default()) {
+	color: @text-color;
+  }
+}
+
+.colorize(color) {
+  // sets a background color and makes sure text works with it
+  background-color: color;
+  .contrast-text-against(color);
+}
+
+.set-contrast-ratio(color1, color2) when (luma(color1) > luma(color2)) {
+  // sets variable @contrast-ratio to contrast ratio between two colors
+
+  @l1: unit(luma(color1))/100;
+  @l2: unit(luma(color2))/100;
+  @contrast-ratio: round((@l1 + .05)/(@l2 + .05),2);
+}
+
+.set-contrast-ratio(color1, color2) when (luma(color2) > luma(color1)) {
+  @l1: unit(luma(color2))/100;
+  @l2: unit(luma(color1))/100;
+  @contrast-ratio: round((@l1 + .05)/(@l2 + .05),2);
+}
+
+.set-contrast-ratio(color1, color2) when (luma(color2) = luma(color1)) {
+  @contrast-ratio: 1;
+}
+
+.set-tone(color) {
+  // sets variable tone to white or black, depending on which is better for text contrast
+
+  .set-contrast-ratio-black() {
+	.set-contrast-ratio(color, black);
+	@contrast-ratio-black: @contrast-ratio;
+  }
+
+  .set-contrast-ratio-white() {
+	.set-contrast-ratio(color, white);
+	@contrast-ratio-white: @contrast-ratio;
+  }
+
+  .set-tone(color) when (@contrast-ratio-black > @contrast-ratio-white) {
+	const tone = black;
+  }
+
+  .set-tone(color) when (default()) {
+	const tone = white;
+  }
+
+  .set-contrast-ratio-black();
+  .set-contrast-ratio-white();
+
+  .set-tone(color);
+}

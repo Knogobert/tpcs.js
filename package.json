@@ -1,7 +1,7 @@
 {
   "name": "tpcs.js",
   "description": "Turbo-powered color schemes for JS",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "license": "MIT",
   "main": "dist/tpcs.cjs.js",
   "module": "dist/tpcs.esm.js",

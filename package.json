@@ -18,7 +18,7 @@
     "Knogobert <Knogobert@users.noreply.github.com> (https://svenparker.com)"
   ],
   "repository": {
-    "url": "https://github.com/Knogobert/movethatbus.js"
+    "url": "https://github.com/Knogobert/tpcs.js"
   },
   "devDependencies": {
     "@babel/core": "^7.11.0",
